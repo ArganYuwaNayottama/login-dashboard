@@ -1,0 +1,30 @@
+{
+  "name": "web-argana",
+  "version": "1.0.0",
+  "description": "WEB AND REST API (PostgreSQL + Express + JWT)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [
+    "toko-buku",
+    "express",
+    "postgresql",
+    "jwt",
+    "smk-negeri-1-jenangan"
+  ],
+  "author": "Nama Kamu",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
