@@ -291,7 +291,11 @@ function Dashcashier() {
                       >
                         <td>{index + 1}</td>
                         <td>{product.title}</td>
-                        <td>{product.category}</td>
+                        <td>
+                          {product.category === "Dasar"
+                            ? "Sejarah"
+                            : product.category}
+                        </td>
                         <td>Rp {product.price.toLocaleString("id-ID")}</td>
                         <td>{product.stock}</td>
                         <td>
@@ -344,7 +348,7 @@ function Dashcashier() {
                       className={`cat-tab ${activeCategory === cat ? "cat-tab--active" : ""}`}
                       onClick={() => setActiveCategory(cat)}
                     >
-                      {cat}
+                      {cat === "Dasar" ? "Sejarah" : cat}
                     </button>
                   ))}
                 </div>
@@ -390,7 +394,11 @@ function Dashcashier() {
                         title={product.title}
                         description={product.description}
                         originalPrice={product.price}
-                        category={product.category}
+                        category={
+                          product.category === "Dasar"
+                            ? "Sejarah"
+                            : product.category
+                        }
                         image={product.image}
                         stock={product.stock}
                         discount={getDiscount(product.id)}
@@ -434,7 +442,9 @@ function Dashcashier() {
                   <option value="">-- Pilih Kategori --</option>
                   {categories.map((cat) => (
                     <option key={cat.id_category} value={cat.id_category}>
-                      {cat.name_category}
+                      {cat.name_category === "Dasar"
+                        ? "Sejarah"
+                        : cat.name_category}
                     </option>
                   ))}
                 </select>

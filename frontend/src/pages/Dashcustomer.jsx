@@ -121,7 +121,7 @@ function Dashboard() {
                 className={`cat-tab ${activeCategory === cat ? "cat-tab--active" : ""}`}
                 onClick={() => setActiveCategory(cat)}
               >
-                {cat}
+                {cat === "Dasar" ? "Sejarah" : cat}
               </button>
             ))}
           </div>
@@ -170,7 +170,9 @@ function Dashboard() {
                 <ProductCard
                   title={product.title}
                   description={product.description}
-                  category={product.category}
+                  category={
+                    product.category === "Dasar" ? "Sejarah" : product.category
+                  }
                   originalPrice={product.price}
                   image={product.image}
                   stock={product.stock}
