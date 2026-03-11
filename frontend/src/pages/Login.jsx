@@ -19,10 +19,23 @@ function Login({ onLogin }) {
         password,
       });
 
+      console.log("RESPONSE:", response.data);
+      console.log("ROLE:", response.data.role);
+
       localStorage.setItem("token", response.data.token);
-      navigate("/dashboard");
-    } catch {
-      setError("Akun tidak ditemukan. Periksa username dan password kamu atau daftar.");
+      localStorage.setItem("username", response.data.username);
+      localStorage.setItem("role", response.data.role);
+
+      const role = response.data.role;
+      if (role === "admin") navigate("/admin");
+      else if (role === "cashier") navigate("/cashier");
+      else navigate("/dashboard");
+
+    } catch (err) {
+      console.log("ERROR:", err);
+      setError(
+        "Akun tidak ditemukan. Periksa username dan password kamu atau daftar.",
+      );
       setTimeout(() => {
         setError("");
       }, 3000);

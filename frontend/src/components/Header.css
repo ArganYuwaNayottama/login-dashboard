@@ -1,4 +1,3 @@
-/* HEADER */
 .dashboard-header {
   background: white;
   padding: 15px 40px;
@@ -11,19 +10,13 @@
   z-index: 100;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-}
+.logo { display: flex; align-items: center; }
 
 .logo-img {
   height: 50px;
   transition: 0.3s ease;
 }
-
-.logo-img:hover {
-  transform: scale(1.05);
-}
+.logo-img:hover { transform: scale(1.05); }
 
 .header-center {
   display: flex;
@@ -38,42 +31,7 @@
   margin-left: 10px;
 }
 
-/* CATEGORY */
-.category-filter {
-  position: relative;
-  background: #f1f5f9;
-  padding: 7px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: 0.3s;
-}
 
-.category-filter:hover {
-  background: #e2e8f0;
-}
-
-.category-dropdown {
-  position: absolute;
-  top: 45px;
-  left: 0;
-  background: white;
-  border-radius: 14px;
-  padding: 12px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.08);
-  animation: fadeSlide 0.25s ease;
-}
-
-.category-dropdown div {
-  padding: 8px;
-  cursor: pointer;
-  border-radius: 8px;
-}
-
-.category-dropdown div:hover {
-  background: #f1f5f9;
-}
-
-/* SEARCH */
 .search-bar {
   width: 350px;
   padding: 10px 16px;
@@ -81,19 +39,13 @@
   border: 2px solid #e5e7eb;
   transition: 0.3s;
 }
+.search-bar:focus { border-color: #2563eb; outline: none; }
 
-.search-bar:focus {
-  border-color: #2563eb;
-  outline: none;
-}
-
-/* Keranjang tidak clickable */
 .cart-icon {
   position: relative;
   font-size: 20px;
   opacity: 0.8;
 }
-
 .cart-badge-static {
   position: absolute;
   top: -6px;
@@ -105,14 +57,12 @@
   border-radius: 50%;
 }
 
-/* Profile wrapper */
 .profile-wrapper {
   position: relative;
   cursor: pointer;
   font-size: 20px;
 }
 
-/* Profile dropdown lebih panjang */
 .profile-dropdown {
   position: absolute;
   top: 45px;
@@ -125,19 +75,9 @@
   animation: fadeSlide 0.25s ease;
 }
 
-.profile-header {
-  margin-bottom: 20px;
-}
-
-.profile-name {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.profile-level {
-  font-size: 13px;
-  color: #64748b;
-}
+.profile-header { margin-bottom: 20px; }
+.profile-name { font-size: 18px; font-weight: 600; }
+.profile-level { font-size: 13px; color: #64748b; }
 
 .level-bar {
   height: 10px;
@@ -146,13 +86,9 @@
   overflow: hidden;
   margin-bottom: 8px;
 }
+.level-progress { height: 100%; border-radius: 20px; transition: width 0.4s ease; }
+.level-points { font-size: 12px; color: #6b7280; }
 
-.level-points {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-/* Logout lebih kecil & elegan */
 .logout-btn {
   margin-top: 18px;
   padding: 6px;
@@ -164,19 +100,55 @@
   cursor: pointer;
   transition: 0.2s;
 }
+.logout-btn:hover { background: #e5e7eb; }
 
-.logout-btn:hover {
+/* MODE TOGGLE */
+.mode-toggle {
+  position: relative;
+  width: 130px;
+  height: 34px;
   background: #e5e7eb;
+  border-radius: 20px;
+  cursor: pointer;
+  overflow: hidden;
+  user-select: none;
+  flex-shrink: 0;
 }
 
-/* ANIMATION */
+/* thumb ukurannya ~60% dari lebar, sisanya jadi ekor kosong */
+.mode-thumb {
+  position: absolute;
+  top: 3px;
+  height: calc(100% - 6px);
+  width: 72px;
+  background: #2563eb;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* kelola → thumb di kiri, ekor kosong di kanan */
+.mode-kelola .mode-thumb {
+  left: 3px;
+}
+
+/* lihat → thumb di kanan, ekor kosong di kiri */
+.mode-lihat .mode-thumb {
+  left: calc(100% - 75px);
+}
+
+.mode-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 @keyframes fadeSlide {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
