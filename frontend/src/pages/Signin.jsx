@@ -27,6 +27,10 @@ function Signin() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  useEffect(() => {
+  document.title = "Daftar Akun Arbook | Arganabook Accounts";
+  }, []);
+
   /* CLOSE DROPDOWN SAAT KLIK LUAR */
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -129,11 +133,11 @@ function Signin() {
   };
 
   return (
-    <div className="login-container">
+    <div className="register-container">
       {error && <div className="error-popup">{error}</div>}
       {success && <div className="success-popup">{success}</div>}
 
-      <form className="login-form" onSubmit={handleRegister} noValidate>
+      <form className="register-form" onSubmit={handleRegister} noValidate>
         <h2>Daftar Akun Arbook</h2>
 
         {/* USERNAME */}
@@ -285,6 +289,13 @@ function Signin() {
         <div className="register-text">
           Sudah punya akun?
           <span onClick={() => navigate("/login")}> Masuk</span>
+        </div>
+        <div className="copyright">
+          © 2026 Teamvd Arganabook
+          <br />
+          <a href="mailto:arganavd@gmail.com" className="copyright-email">
+            arganavd@gmail.com
+          </a>
         </div>
       </form>
     </div>

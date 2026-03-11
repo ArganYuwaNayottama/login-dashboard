@@ -10,6 +10,10 @@ function Login({ onLogin }) {
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
+  useEffect(() => {
+  document.title = "Masuk ke Akun Arbook | Arganabook Accounts";
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -87,6 +91,13 @@ function Login({ onLogin }) {
         <div className="register-text">
           Belum punya akun?
           <span onClick={() => navigate("/signin")}> Daftar</span>
+        </div>
+        <div className="copyright">
+          © 2026 Teamvd Arganabook
+          <br />
+          <a href="mailto:arganavd@gmail.com" className="copyright-email">
+            arganavd@gmail.com
+          </a>
         </div>
       </form>
     </div>

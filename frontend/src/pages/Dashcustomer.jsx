@@ -21,6 +21,10 @@ function Dashboard() {
   const [showProfile, setShowProfile] = useState(false);
   const [showCategory, setShowCategory] = useState(false);
 
+  useEffect(() => {
+  document.title = "Website Toko Buku | Arbook.com";
+  }, []);
+
   const username = localStorage.getItem("username") || "Guest";
 
   // ── Diskon dari store (diisi admin, otomatis sync) ──

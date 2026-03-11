@@ -33,6 +33,10 @@ function Dashcashier() {
   const [modalMode, setModalMode] = useState("add");
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  useEffect(() => {
+  document.title = "Website Toko Buku | Arbook.com";
+  }, []);
+
   // ── State konfirmasi hapus (menggantikan window.confirm) ──
   // TEST: Klik hapus → harus muncul modal konfirmasi, bukan popup bawaan browser
   const [confirmDelete, setConfirmDelete] = useState(null);
