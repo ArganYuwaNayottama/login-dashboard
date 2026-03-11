@@ -1,9 +1,17 @@
+// ============================================================
+// Dashcashier.jsx — Versi Final
+// ✅ Validasi duplikat produk (nama sama tidak bisa masuk)
+// ✅ Validasi harga & stok tidak boleh negatif / nol
+// ✅ Konfirmasi hapus pakai modal (bukan alert bawaan)
+// ✅ Semua notifikasi pakai error-popup / success-popup
+// ✅ Komentar TEST CASE untuk latihan ujian
+// ============================================================
+
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import Header from "../components/Header";
 import { useDiscounts } from "../store/discountStore";
-// import ProductModal from "../components/ProductModal"; // detail
 import "./Dashcashier.css";
 
 function Dashcashier() {
@@ -23,9 +31,11 @@ function Dashcashier() {
 
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState("add");
-  const [selectedProduct, setSelectedProduct] = useState(null); // untuk CRUD edit
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // const [previewProduct, setPreviewProduct] = useState(null); // untuk modal detail tab lihat
+  // ── State konfirmasi hapus (menggantikan window.confirm) ──
+  // TEST: Klik hapus → harus muncul modal konfirmasi, bukan popup bawaan browser
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const [formData, setFormData] = useState({
     name_product: "",
@@ -42,6 +52,9 @@ function Dashcashier() {
 
   const { getDiscount } = useDiscounts();
 
+  // ── Fungsi tampilkan notifikasi ──
+  // TEST: Semua error & sukses harus muncul sebagai popup di atas layar,
+  //       bukan alert() bawaan browser
   const showError = (msg) => {
     setError(msg);
     setTimeout(() => setError(""), 3000);
@@ -73,22 +86,25 @@ function Dashcashier() {
     if (!token) navigate("/login");
   }, [navigate, token]);
 
+  // ── Fetch semua produk (termasuk nonaktif) ──
+  // TEST READ: Buka dashboard cashier → semua produk harus muncul di tabel
   const fetchProducts = async () => {
     try {
       const response = await fetch(
         "https://arbook-backend-v1.onrender.com/api/products/all",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       const data = await response.json();
       setProducts(Array.isArray(data) ? data : []);
       setLoading(false);
     } catch {
+      showError("Gagal memuat produk");
       setLoading(false);
     }
   };
 
+  // ── Fetch kategori ──
+  // TEST READ: Dropdown kategori di modal harus terisi dari database
   const fetchCategories = async () => {
     try {
       const response = await fetch(
@@ -97,7 +113,7 @@ function Dashcashier() {
       const data = await response.json();
       setCategories(data);
     } catch {
-      console.log("gagal fetch kategori");
+      showError("Gagal memuat kategori");
     }
   };
 
@@ -134,7 +150,7 @@ function Dashcashier() {
     return matchActive && matchSearch && matchCategory;
   });
 
-  // ── CRUD handlers ──
+  // ── Buka modal tambah produk ──
   const openAddModal = () => {
     setModalMode("add");
     setFormData({ name_product: "", price: "", stock: "", id_category: "" });
@@ -142,6 +158,7 @@ function Dashcashier() {
     setShowModal(true);
   };
 
+  // ── Buka modal edit produk ──
   const openEditModal = (product) => {
     setModalMode("edit");
     setSelectedProduct(product);
@@ -154,17 +171,64 @@ function Dashcashier() {
     setShowModal(true);
   };
 
+  // ── Submit tambah / edit produk ──
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name_product || !formData.price || !formData.id_category) {
-      showError("Nama, harga, dan kategori wajib diisi");
+
+    // ── VALIDASI FRONTEND ──
+
+    // TEST CREATE: Coba submit form kosong → harus muncul error
+    if (!formData.name_product.trim()) {
+      showError("Nama produk wajib diisi");
       return;
     }
+
+    // TEST CREATE: Coba isi nama kurang dari 3 huruf → harus muncul error
+    if (formData.name_product.trim().length < 3) {
+      showError("Nama produk minimal 3 karakter");
+      return;
+    }
+
+    // TEST CREATE: Coba submit tanpa pilih kategori → harus muncul error
+    if (!formData.id_category) {
+      showError("Kategori wajib dipilih");
+      return;
+    }
+
+    // TEST CREATE: Coba isi harga 0 atau kosong → harus muncul error
+    if (!formData.price || parseInt(formData.price) <= 0) {
+      showError("Harga harus lebih dari 0");
+      return;
+    }
+
+    // TEST CREATE: Coba isi stok negatif → harus muncul error
+    if (parseInt(formData.stock) < 0) {
+      showError("Stok tidak boleh negatif");
+      return;
+    }
+
+    // ── VALIDASI DUPLIKAT (khusus mode tambah) ──
+    // TEST CREATE: Coba tambah produk dengan nama yang SAMA PERSIS → harus muncul error
+    // TEST CREATE: Coba tambah produk dengan nama SAMA tapi beda huruf besar/kecil
+    //              (misal "naruto" padahal sudah ada "Naruto") → harus muncul error
+    if (modalMode === "add") {
+      const isDuplicate = products.some(
+        (p) =>
+          p.title?.toLowerCase().trim() ===
+          formData.name_product.toLowerCase().trim(),
+      );
+      if (isDuplicate) {
+        showError("Produk dengan nama ini sudah ada!");
+        return;
+      }
+    }
+
     const url =
       modalMode === "add"
         ? "https://arbook-backend-v1.onrender.com/api/products"
         : `https://arbook-backend-v1.onrender.com/api/products/${selectedProduct.id}`;
     const method = modalMode === "add" ? "POST" : "PUT";
+
     try {
       const response = await fetch(url, {
         method,
@@ -173,21 +237,25 @@ function Dashcashier() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          name_product: formData.name_product,
+          name_product: formData.name_product.trim(),
           price: parseInt(formData.price),
           stock: parseInt(formData.stock) || 0,
           id_category: parseInt(formData.id_category),
         }),
       });
+
       if (!response.ok) {
         const err = await response.json();
-        showError(err.message || "Gagal menyimpan");
+        showError(err.message || "Gagal menyimpan produk");
         return;
       }
+
+      // TEST CREATE: Tambah produk lengkap & valid → harus muncul notifikasi hijau sukses
+      // TEST UPDATE: Edit produk & simpan → harus muncul notifikasi hijau sukses
       showSuccess(
         modalMode === "add"
-          ? "Produk berhasil ditambahkan!"
-          : "Produk berhasil diupdate!",
+          ? "Produk berhasil ditambahkan! ✅"
+          : "Produk berhasil diupdate! ✅",
       );
       setShowModal(false);
       fetchProducts();
@@ -196,8 +264,17 @@ function Dashcashier() {
     }
   };
 
-  const handleDelete = async (product) => {
-    if (!window.confirm(`Hapus produk "${product.title}"?`)) return;
+  // ── Hapus produk — pakai modal konfirmasi ──
+  // TEST DELETE: Klik hapus → harus muncul modal konfirmasi dulu (bukan alert browser)
+  // TEST DELETE: Klik "Batal" di modal → produk tidak terhapus
+  // TEST DELETE: Klik "Ya, Hapus" → produk hilang dari tabel + notifikasi sukses
+  const handleDelete = (product) => {
+    setConfirmDelete(product);
+  };
+
+  const confirmDeleteProduct = async () => {
+    const product = confirmDelete;
+    setConfirmDelete(null);
     try {
       const response = await fetch(
         `https://arbook-backend-v1.onrender.com/api/products/${product.id}`,
@@ -210,13 +287,17 @@ function Dashcashier() {
         showError("Gagal menghapus produk");
         return;
       }
-      showSuccess("Produk berhasil dihapus!");
+      showSuccess(`Produk "${product.title}" berhasil dihapus! 🗑️`);
       fetchProducts();
     } catch {
       showError("Terjadi kesalahan, coba lagi");
     }
   };
 
+  // ── Toggle aktif / nonaktif produk ──
+  // TEST TOGGLE: Klik "Nonaktifkan" → status berubah jadi Nonaktif + notifikasi
+  // TEST TOGGLE: Buka tab "Lihat" → produk nonaktif tidak muncul di sana
+  // TEST TOGGLE: Klik "Aktifkan" → status kembali Aktif + notifikasi
   const handleToggleActive = async (product) => {
     try {
       const response = await fetch(
@@ -227,11 +308,13 @@ function Dashcashier() {
         },
       );
       if (!response.ok) {
-        showError("Gagal mengubah status");
+        showError("Gagal mengubah status produk");
         return;
       }
       showSuccess(
-        product.is_active ? "Produk dinonaktifkan!" : "Produk diaktifkan!",
+        product.is_active
+          ? `"${product.title}" dinonaktifkan!`
+          : `"${product.title}" diaktifkan! ✅`,
       );
       fetchProducts();
     } catch {
@@ -241,7 +324,9 @@ function Dashcashier() {
 
   return (
     <div className="dashboard-container">
+      {/* Notifikasi error — muncul di atas layar */}
       {error && <div className="error-popup">{error}</div>}
+      {/* Notifikasi sukses — muncul di atas layar */}
       {success && <div className="success-popup">{success}</div>}
 
       <Header
@@ -261,7 +346,10 @@ function Dashcashier() {
 
       <main className="dashboard-main">
         <div className="tab-content" key={activeTab}>
-          {/* ── TAB KELOLA ── */}
+          {/* ══════════════════════════════════
+              TAB KELOLA — Manajemen Produk
+              TEST READ: Semua produk (aktif+nonaktif) harus tampil di tabel ini
+          ══════════════════════════════════ */}
           {activeTab === "kelola" && (
             <>
               <div className="cashier-toolbar">
@@ -274,7 +362,10 @@ function Dashcashier() {
               {loading ? (
                 <p className="loading">Memuat produk...</p>
               ) : filteredProducts.length === 0 ? (
-                <p className="loading">Tidak ada produk.</p>
+                <div className="empty-state">
+                  <span>📦</span>
+                  <p>Tidak ada produk ditemukan.</p>
+                </div>
               ) : (
                 <table className="product-table">
                   <thead>
@@ -311,12 +402,14 @@ function Dashcashier() {
                           </span>
                         </td>
                         <td className="action-btns">
+                          {/* TEST UPDATE: Klik Edit → modal terbuka dengan data produk terisi */}
                           <button
                             className="btn-edit"
                             onClick={() => openEditModal(product)}
                           >
                             Edit
                           </button>
+                          {/* TEST TOGGLE: Klik ini → status berubah */}
                           <button
                             className={
                               product.is_active
@@ -327,6 +420,7 @@ function Dashcashier() {
                           >
                             {product.is_active ? "Nonaktifkan" : "Aktifkan"}
                           </button>
+                          {/* TEST DELETE: Klik ini → muncul modal konfirmasi */}
                           <button
                             className="btn-delete"
                             onClick={() => handleDelete(product)}
@@ -342,7 +436,10 @@ function Dashcashier() {
             </>
           )}
 
-          {/* ── TAB LIHAT ── */}
+          {/* ══════════════════════════════════
+              TAB LIHAT — Tampilan Customer
+              TEST TOGGLE: Produk nonaktif TIDAK boleh muncul di sini
+          ══════════════════════════════════ */}
           {activeTab === "lihat" && (
             <>
               {!loading && categoryList.length > 1 && (
@@ -407,7 +504,6 @@ function Dashcashier() {
                         image={product.image}
                         stock={product.stock}
                         discount={getDiscount(product.id)}
-                        // onClick={(p) => setPreviewProduct(p)} // buka kalau mau aktifkan modal detail
                       />
                     </div>
                   ))}
@@ -418,12 +514,59 @@ function Dashcashier() {
         </div>
       </main>
 
-      {/* ── MODAL CRUD (tambah/edit produk) ── */}
+      {/* ══════════════════════════════════
+          MODAL KONFIRMASI HAPUS
+          TEST DELETE: Harus muncul modal ini, bukan alert() browser
+          TEST DELETE: Klik Batal → modal tutup, produk aman
+          TEST DELETE: Klik Ya Hapus → produk terhapus + notifikasi sukses
+      ══════════════════════════════════ */}
+      {confirmDelete && (
+        <div className="modal-overlay" onClick={() => setConfirmDelete(null)}>
+          <div
+            className="modal-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 380, textAlign: "center" }}
+          >
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🗑️</div>
+            <h3 style={{ marginBottom: 10 }}>Hapus Produk?</h3>
+            <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 28 }}>
+              Produk <strong>"{confirmDelete.title}"</strong> akan dihapus
+              permanen dan tidak bisa dikembalikan.
+            </p>
+            <div
+              className="modal-actions"
+              style={{ justifyContent: "center", gap: 12 }}
+            >
+              <button
+                className="btn-cancel"
+                onClick={() => setConfirmDelete(null)}
+              >
+                Batal
+              </button>
+              <button className="btn-delete" onClick={confirmDeleteProduct}>
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════
+          MODAL CRUD — Tambah / Edit Produk
+          TEST CREATE: Isi semua field lengkap → klik Tambah → berhasil
+          TEST CREATE: Kosongkan salah satu field → klik Tambah → error
+          TEST CREATE: Isi nama produk yang sudah ada → error duplikat
+          TEST CREATE: Isi harga 0 atau negatif → error
+          TEST UPDATE: Buka edit → ubah data → simpan → data terupdate di tabel
+      ══════════════════════════════════ */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <h3>{modalMode === "add" ? "Tambah Produk" : "Edit Produk"}</h3>
+            <h3>
+              {modalMode === "add" ? "➕ Tambah Produk" : "✏️ Edit Produk"}
+            </h3>
             <form onSubmit={handleSubmit} noValidate>
+              {/* Nama Produk */}
               <div className="modal-input-group floating">
                 <input
                   type="text"
@@ -436,6 +579,7 @@ function Dashcashier() {
                 <label>Nama Produk</label>
               </div>
 
+              {/* Kategori */}
               <div className="modal-input-group">
                 <label className="select-label">Kategori</label>
                 <select
@@ -455,11 +599,13 @@ function Dashcashier() {
                 </select>
               </div>
 
+              {/* Harga & Stok */}
               <div className="modal-row">
                 <div className="modal-input-group floating">
                   <input
                     type="number"
                     placeholder=" "
+                    min="1"
                     value={formData.price}
                     onChange={(e) =>
                       setFormData({ ...formData, price: e.target.value })
@@ -471,6 +617,7 @@ function Dashcashier() {
                   <input
                     type="number"
                     placeholder=" "
+                    min="0"
                     value={formData.stock}
                     onChange={(e) =>
                       setFormData({ ...formData, stock: e.target.value })
@@ -496,13 +643,6 @@ function Dashcashier() {
           </div>
         </div>
       )}
-
-      {/* ── MODAL DETAIL PRODUK (tab lihat) — buka jika pakai ──
-      <ProductModal
-        product={previewProduct}
-        onClose={() => setPreviewProduct(null)}
-      />
-      */}
     </div>
   );
 }
