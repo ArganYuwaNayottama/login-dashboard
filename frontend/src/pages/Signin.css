@@ -4,12 +4,21 @@ input[type="password"]::-ms-clear {
 display: none;
 }
 
+.login-container {
+  background-image: url('/Baground.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
+
 /* Chrome */
 input[type="password"]::-webkit-credentials-auto-fill-button {
 visibility: hidden;
 display: none !important;
 pointer-events: none;
 }
+
 
 .role-input{
 position:relative;

@@ -6,6 +6,16 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
+.dashboard-container {
+  min-height: 100vh;
+  background-image: url('/Baground.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+}
+
 :root {
   --bg:          #f5f0e8;
   --bg-alt:      #ede7d8;

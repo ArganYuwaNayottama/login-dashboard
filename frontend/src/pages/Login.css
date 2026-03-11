@@ -6,6 +6,11 @@
   background: #f3f4f6;
   font-family: 'Segoe UI', sans-serif;
   padding: 20px;
+  background-image: url('/Baground.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
 }
 
 .login-form {
@@ -23,6 +28,7 @@
 .login-form h2 {
   align-self: center;
 }
+
 
 /* FLOATING INPUT */
 .input-group {
