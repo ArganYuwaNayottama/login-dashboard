@@ -457,5 +457,5 @@ app.delete('/api/transactions/:id', verifyToken, verifyAdmin, async (req, res) =
 // START SERVER
 // =====================
 app.listen(3000, () => {
-  console.log('Server berjalan di http://localhost:3000/api');
+  console.log('Server berjalan di https://arbook-backend-v1.onrender.com/api');
 });

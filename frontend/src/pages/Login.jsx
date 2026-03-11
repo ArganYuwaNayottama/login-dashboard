@@ -14,10 +14,13 @@ function Login({ onLogin }) {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:3000/api/login", {
-        username,
-        password,
-      });
+      const response = await axios.post(
+        "https://arbook-backend-v1.onrender.com/api/login",
+        {
+          username,
+          password,
+        },
+      );
 
       console.log("RESPONSE:", response.data);
       console.log("ROLE:", response.data.role);
@@ -30,7 +33,6 @@ function Login({ onLogin }) {
       if (role === "admin") navigate("/admin");
       else if (role === "cashier") navigate("/cashier");
       else navigate("/dashboard");
-
     } catch (err) {
       console.log("ERROR:", err);
       setError(
@@ -40,7 +42,6 @@ function Login({ onLogin }) {
         setError("");
       }, 3000);
     }
-
   };
 
   return (

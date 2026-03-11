@@ -75,9 +75,12 @@ function Dashcashier() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/products/all", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        "https://arbook-backend-v1.onrender.com/api/products/all",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       const data = await response.json();
       setProducts(Array.isArray(data) ? data : []);
       setLoading(false);
@@ -88,7 +91,9 @@ function Dashcashier() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/categories");
+      const response = await fetch(
+        "https://arbook-backend-v1.onrender.com/api/categories",
+      );
       const data = await response.json();
       setCategories(data);
     } catch {
@@ -157,8 +162,8 @@ function Dashcashier() {
     }
     const url =
       modalMode === "add"
-        ? "http://localhost:3000/api/products"
-        : `http://localhost:3000/api/products/${selectedProduct.id}`;
+        ? "https://arbook-backend-v1.onrender.com/api/products"
+        : `https://arbook-backend-v1.onrender.com/api/products/${selectedProduct.id}`;
     const method = modalMode === "add" ? "POST" : "PUT";
     try {
       const response = await fetch(url, {
@@ -195,7 +200,7 @@ function Dashcashier() {
     if (!window.confirm(`Hapus produk "${product.title}"?`)) return;
     try {
       const response = await fetch(
-        `http://localhost:3000/api/products/${product.id}`,
+        `https://arbook-backend-v1.onrender.com/api/products/${product.id}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -215,7 +220,7 @@ function Dashcashier() {
   const handleToggleActive = async (product) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/products/${product.id}/toggle`,
+        `https://arbook-backend-v1.onrender.com/api/products/${product.id}/toggle`,
         {
           method: "PATCH",
           headers: { Authorization: `Bearer ${token}` },
