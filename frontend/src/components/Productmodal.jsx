@@ -2,14 +2,18 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import "./Productmodal.css";
 
-// Dipanggil dari Dashcustomer dengan:
-// <ProductModal product={selectedProduct} mode="detail"|"cart" onClose={() => setSelectedProduct(null)} />
-
 function ProductModal({ product, mode: initialMode, onClose }) {
-  const [mode, setMode] = useState(initialMode || "detail");
+  const [mode, setMode] = useState("detail");
+  const [flow, setFlow] = useState("cart"); // "cart" | "buy"
   const [qty, setQty] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-  // Tutup modal saat tekan Escape
+  useEffect(() => {
+    setQty(1);
+    setMode("detail");
+    setFlow("cart");
+  }, [product]);
+
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onClose();
@@ -28,6 +32,7 @@ function ProductModal({ product, mode: initialMode, onClose }) {
     image,
     stock,
     discount,
+    id,
   } = product;
 
   const hasDiscount = discount && discount.percent > 0;
@@ -38,6 +43,8 @@ function ProductModal({ product, mode: initialMode, onClose }) {
 
   const formatRp = (val) =>
     "Rp" + Number(val).toLocaleString("id-ID", { maximumFractionDigits: 0 });
+
+  const token = localStorage.getItem("token");
 
   const Cover = () =>
     image ? (
@@ -59,6 +66,59 @@ function ProductModal({ product, mode: initialMode, onClose }) {
       </div>
     );
 
+  // ── Masuk Keranjang ──
+  const handleAddToCart = () => {
+    const existing = JSON.parse(localStorage.getItem("cart") || "[]");
+    const idx = existing.findIndex((item) => item.title === title);
+    if (idx !== -1) {
+      existing[idx].qty = Math.min(stock, existing[idx].qty + qty);
+    } else {
+      existing.push({
+        id,
+        title,
+        image,
+        category,
+        price: finalPrice,
+        qty,
+        stock,
+      });
+    }
+    localStorage.setItem("cart", JSON.stringify(existing));
+    window.dispatchEvent(new Event("cartUpdated"));
+    onClose();
+  };
+
+  // ── Beli Sekarang → kurangi stok di DB ──
+  const handleBuyNow = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `https://arbook-backend-v1.onrender.com/api/products/${id}/buy`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ qty }),
+        },
+      );
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.message || "Gagal membeli produk");
+        return;
+      }
+      alert(
+        `✅ Berhasil membeli ${qty} "${title}"!\nTotal: ${formatRp(finalPrice * qty)}`,
+      );
+      onClose();
+    } catch {
+      alert("Terjadi kesalahan, coba lagi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return createPortal(
     <div className="pm-overlay" onClick={onClose}>
       <div className="pm-box" onClick={(e) => e.stopPropagation()}>
@@ -75,7 +135,6 @@ function ProductModal({ product, mode: initialMode, onClose }) {
             <div className="pm-detail-info">
               {category && <span className="pm-category">{category}</span>}
               <h2 className="pm-title">{title}</h2>
-
               <div className="pm-price-row">
                 {hasDiscount ? (
                   <>
@@ -91,7 +150,6 @@ function ProductModal({ product, mode: initialMode, onClose }) {
                   <span className="pm-price">{formatRp(originalPrice)}</span>
                 )}
               </div>
-
               <div className="pm-meta">
                 <div className="pm-meta-item">
                   <span className="pm-meta-label">Stok</span>
@@ -110,7 +168,6 @@ function ProductModal({ product, mode: initialMode, onClose }) {
                   <span className="pm-meta-value">{category || "-"}</span>
                 </div>
               </div>
-
               {description && (
                 <div className="pm-desc">
                   <p className="pm-desc-label">Deskripsi</p>
@@ -118,24 +175,41 @@ function ProductModal({ product, mode: initialMode, onClose }) {
                 </div>
               )}
 
-              <button
-                className="pm-buy-btn"
-                disabled={stock === 0}
-                onClick={() => {
-                  setMode("cart");
-                  setQty(1);
-                }}
-              >
-                {stock === 0 ? "Stok Habis" : "Beli Sekarang"}
-              </button>
+              {/* ── 2 TOMBOL ── */}
+              <div className="pm-detail-actions">
+                <button
+                  className="pm-cart-btn"
+                  disabled={stock === 0}
+                  onClick={() => {
+                    setFlow("cart");
+                    setQty(1);
+                    setMode("qty");
+                  }}
+                >
+                  🛒 Keranjang
+                </button>
+                <button
+                  className="pm-buy-btn"
+                  disabled={stock === 0}
+                  onClick={() => {
+                    setFlow("buy");
+                    setQty(1);
+                    setMode("qty");
+                  }}
+                >
+                  {stock === 0 ? "Stok Habis" : "Beli Sekarang"}
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* ── MODE CART ── */}
-        {mode === "cart" && (
+        {/* ── MODE QTY (pilih jumlah) ── */}
+        {mode === "qty" && (
           <div className="pm-cart">
-            <h3 className="pm-cart-title">Tambah ke Keranjang</h3>
+            <h3 className="pm-cart-title">
+              {flow === "cart" ? "Masuk Keranjang" : "Beli Sekarang"}
+            </h3>
 
             <div className="pm-cart-preview">
               <div className="pm-cart-thumb">
@@ -162,7 +236,17 @@ function ProductModal({ product, mode: initialMode, onClose }) {
                 >
                   −
                 </button>
-                <span className="pm-qty-val">{qty}</span>
+                <input
+                  type="number"
+                  className="pm-qty-input"
+                  value={qty}
+                  min={1}
+                  max={stock}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (!isNaN(val)) setQty(Math.min(stock, Math.max(1, val)));
+                  }}
+                />
                 <button
                   className="pm-qty-btn"
                   onClick={() => setQty((q) => Math.min(stock, q + 1))}
@@ -190,15 +274,19 @@ function ProductModal({ product, mode: initialMode, onClose }) {
               <button className="pm-back-btn" onClick={() => setMode("detail")}>
                 ← Kembali
               </button>
-              <button
-                className="pm-confirm-btn"
-                onClick={() => {
-                  alert(`${qty} "${title}" masuk keranjang!`);
-                  onClose();
-                }}
-              >
-                🛒 Masuk Keranjang
-              </button>
+              {flow === "cart" ? (
+                <button className="pm-confirm-btn" onClick={handleAddToCart}>
+                  🛒 Masuk Keranjang
+                </button>
+              ) : (
+                <button
+                  className="pm-confirm-btn pm-confirm-btn--buy"
+                  onClick={handleBuyNow}
+                  disabled={loading}
+                >
+                  {loading ? "Memproses..." : "💳 Beli Sekarang"}
+                </button>
+              )}
             </div>
           </div>
         )}

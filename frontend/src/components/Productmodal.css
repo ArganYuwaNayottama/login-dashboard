@@ -374,3 +374,73 @@
   .pm-title { font-size: 20px; }
   .pm-cart { padding: 28px 20px 24px; }
 }
+
+.pm-qty-input {
+  width: 52px;
+  height: 40px;
+  text-align: center;
+  border: none;
+  border-left: 2px solid #e8e0d0;
+  border-right: 2px solid #e8e0d0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1c1710;
+  background: white;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.pm-qty-input::-webkit-outer-spin-button,
+.pm-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+.pm-qty-input:focus {
+  background: #faf7f2;
+}
+
+/* 2 tombol di detail */
+.pm-detail-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.pm-cart-btn {
+  flex: 1;
+  background: transparent;
+  border: 2px solid #8b5e2a;
+  color: #8b5e2a;
+  border-radius: 12px;
+  padding: 13px 0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.pm-cart-btn:hover:not(:disabled) {
+  background: rgba(139,94,42,0.08);
+}
+
+.pm-confirm-btn--buy {
+  background: #cc2222;
+}
+.pm-confirm-btn--buy:hover {
+  background: #aa1111;
+}
+
+/* input qty */
+.pm-qty-input {
+  width: 52px;
+  height: 40px;
+  text-align: center;
+  border: none;
+  border-left: 2px solid #e8e0d0;
+  border-right: 2px solid #e8e0d0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1c1710;
+  background: white;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.pm-qty-input::-webkit-outer-spin-button,
+.pm-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }

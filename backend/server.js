@@ -316,6 +316,27 @@ app.patch('/api/products/:id/toggle', verifyToken, verifyCashier, async (req, re
   }
 });
 
+app.post('/api/products/:id/buy', verifyToken, async (req, res) => {
+  const { qty } = req.body;
+  if (!qty || qty < 1) return res.status(400).json({ message: 'Jumlah tidak valid' });
+  try {
+    // Cek stok dulu
+    const check = await pool.query('SELECT stock FROM products WHERE id_product = $1', [req.params.id]);
+    if (check.rows.length === 0) return res.status(404).json({ message: 'Produk tidak ditemukan' });
+    if (check.rows[0].stock < qty) return res.status(400).json({ message: 'Stok tidak cukup' });
+
+    // Kurangi stok
+    const result = await pool.query(
+      'UPDATE products SET stock = stock - $1, updated_at = NOW() WHERE id_product = $2 RETURNING *',
+      [qty, req.params.id]
+    );
+    res.json({ message: 'Berhasil', product: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 app.delete('/api/products/:id', verifyToken, verifyCashier, async (req, res) => {
   try {
     const result = await pool.query(
