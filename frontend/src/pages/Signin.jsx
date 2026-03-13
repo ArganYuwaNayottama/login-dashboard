@@ -28,7 +28,7 @@ function Signin() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    document.title = "Daftar Akun Arbook | Arganabook Accounts";
+    document.title = "Daftar Akun ArganFashion | ArganFashion Accounts";
   }, []);
 
   /* CLOSE DROPDOWN SAAT KLIK LUAR */
@@ -58,9 +58,9 @@ function Signin() {
   useEffect(() => {
     if (token === "") {
       setTokenStatus("empty");
-    } else if (role === "admin" && token === "AdminArbook") {
+    } else if (role === "admin" && token === "AdminArgan") {
       setTokenStatus("correct");
-    } else if (role === "cashier" && token === "CashierArbook") {
+    } else if (role === "cashier" && token === "CashierArgan") {
       setTokenStatus("correct");
     } else {
       setTokenStatus("wrong");
@@ -138,7 +138,7 @@ function Signin() {
       {success && <div className="success-popup">{success}</div>}
 
       <form className="login-form" onSubmit={handleRegister} noValidate>
-        <h2>Daftar Akun Arbook</h2>
+        <h2>Daftar Akun ArganFashion</h2>
         {/* USERNAME */}
         <div className="input-group role-input" ref={roleRef}>
           <input
@@ -272,7 +272,7 @@ function Signin() {
               <a href="/terms"> Syarat & Ketentuan </a>
               dan
               <a href="/privacy"> Kebijakan Privasi </a>
-              Arbook.com
+              ArganFashion.com
             </span>
           </div>
         )}
@@ -280,13 +280,6 @@ function Signin() {
         <div className="register-text">
           Sudah punya akun?
           <span onClick={() => navigate("/login")}> Masuk</span>
-        </div>
-        <div className="copyright">
-          © 2026 Team Arganabook
-          <br />
-          <a href="mailto:arganavd9@gmail.com" className="copyright-email">
-            arganavd9@gmail.com
-          </a>
         </div>
       </form>
     </div>

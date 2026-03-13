@@ -52,7 +52,7 @@ function Login({ onLogin }) {
     <div className="login-container">
       {error && <div className="error-popup">{error}</div>}
       <form className="login-form" onSubmit={handleLogin}>
-        <h2>Masuk Akun Arbook</h2>
+        <h2>Masuk Akun ArganFashion</h2>
 
         <div className="input-group">
           <input
@@ -93,13 +93,6 @@ function Login({ onLogin }) {
         <div className="register-text">
           Belum punya akun?
           <span onClick={() => navigate("/signin")}> Daftar</span>
-        </div>
-        <div className="copyright">
-          © 2026 Teamvd Arganabook
-          <br />
-          <a href="mailto:arganavd9@gmail.com" className="copyright-email">
-            arganavd9@gmail.com
-          </a>
         </div>
       </form>
     </div>

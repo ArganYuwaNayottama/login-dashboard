@@ -17,12 +17,13 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("Semua");
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [categories, setCategories] = useState(["Semua"]);
 
   const [showProfile, setShowProfile] = useState(false);
   const [showCategory, setShowCategory] = useState(false);
 
   useEffect(() => {
-  document.title = "Website Toko Buku | Arbook.com";
+    document.title = "Toko Pakaian | Argan Fashion";
   }, []);
 
   const username = localStorage.getItem("username") || "Guest";
@@ -32,6 +33,8 @@ function Dashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    localStorage.removeItem("role");
     navigate("/login");
   };
 
@@ -51,34 +54,75 @@ function Dashboard() {
     if (!token) navigate("/login");
   }, [navigate]);
 
+  // Fetch products dari API
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch(
-          "https://arbook-backend-v1.onrender.com/api/products",
-        );
-        const data = await response.json();
-        setProducts(data);
-      } catch {
-        // handle silently
-      } finally {
-        setLoading(false);
-      }
-    };
+   const fetchProducts = async () => {
+  try {
+    setLoading(true);
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const response = await fetch("http://localhost:3000/api/products", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    // ❌ Cek dulu kalau data bukan array
+    if (!Array.isArray(data)) {
+      console.error("API tidak mengembalikan array:", data);
+      setProducts([]);
+      return;
+    }
+
+    const formattedProducts = data.map(item => ({
+      id: item.id,
+      title: item.name,
+      description: item.description || "Tidak ada deskripsi",
+      category: item.category_name || "Lainnya",
+      price: item.price,
+      originalPrice: item.price,
+      size: item.size,
+      stock: item.stock,
+      image: item.image || null,
+      category_id: item.category_id
+    }));
+
+    setProducts(formattedProducts);
+
+    const uniqueCategories = [
+      "Semua",
+      ...new Set(formattedProducts.map(p => p.category).filter(Boolean))
+    ];
+    setCategories(uniqueCategories);
+
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    setProducts([]);
+  } finally {
+    setLoading(false);
+  }
+};
+    
     fetchProducts();
   }, []);
 
-  const categories = [
-    "Semua",
-    ...Array.from(new Set(products.map((p) => p.category).filter(Boolean))),
-  ];
-
+  // Filter produk berdasarkan pencarian dan kategori
   const filteredProducts = products.filter((product) => {
     const matchSearch =
       product.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category?.toLowerCase().includes(searchQuery.toLowerCase());
+      product.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.size && product.size.toLowerCase().includes(searchQuery.toLowerCase()));
+    
     const matchCategory =
       activeCategory === "Semua" || product.category === activeCategory;
+    
     return matchSearch && matchCategory;
   });
 
@@ -98,23 +142,23 @@ function Dashboard() {
       />
 
       <main className="dashboard-main">
-        {/* ── Hero Banner ── */}
-        <div className="hero-banner">
+        {/* ── Hero Banner untuk Toko Pakaian ── */}
+        <div className="hero-banner" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
           <div className="hero-text">
-            <span className="hero-eyebrow">Koleksi Pilihan</span>
+            <span className="hero-eyebrow">Fashion Collection</span>
             <h1 className="hero-title">
-              Temukan Buku
+              Tampil Gaya
               <br />
-              Favoritmu
+              dengan Koleksi Terbaru
             </h1>
             <p className="hero-sub">
-              Ribuan judul tersedia — dari novel lokal hingga buku impor.
+              Dari casual hingga formal, temukan gaya terbaikmu di sini.
             </p>
           </div>
           <div className="hero-decoration">
-            <div className="hero-book hero-book--1" />
-            <div className="hero-book hero-book--2" />
-            <div className="hero-book hero-book--3" />
+            <div className="hero-book hero-book--1" style={{ background: "#ff6b6b" }}>👕</div>
+            <div className="hero-book hero-book--2" style={{ background: "#4ecdc4" }}>👖</div>
+            <div className="hero-book hero-book--3" style={{ background: "#ffe66d" }}>🧥</div>
           </div>
         </div>
 
@@ -127,7 +171,7 @@ function Dashboard() {
                 className={`cat-tab ${activeCategory === cat ? "cat-tab--active" : ""}`}
                 onClick={() => setActiveCategory(cat)}
               >
-                {cat === "Dasar" ? "Sejarah" : cat}
+                {cat}
               </button>
             ))}
           </div>
@@ -138,10 +182,10 @@ function Dashboard() {
           <div className="section-header">
             <div>
               <h2 className="section-title">
-                {activeCategory === "Semua" ? "Semua Buku" : activeCategory}
+                {activeCategory === "Semua" ? "Semua Produk" : activeCategory}
               </h2>
               <p className="section-count">
-                {filteredProducts.length} judul ditemukan
+                {filteredProducts.length} produk ditemukan
               </p>
             </div>
           </div>
@@ -161,8 +205,8 @@ function Dashboard() {
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">📚</div>
-            <p className="empty-title">Buku tidak ditemukan</p>
+            <div className="empty-icon">👕</div>
+            <p className="empty-title">Produk tidak ditemukan</p>
             <p className="empty-sub">Coba kata kunci atau kategori lain</p>
           </div>
         ) : (
@@ -174,26 +218,30 @@ function Dashboard() {
                 style={{ animationDelay: `${i * 0.06}s` }}
               >
                 <ProductCard
-                  title={product.title}
                   id={product.id}
+                  title={product.title}
                   description={product.description}
-                  category={
-                    product.category === "Dasar" ? "Sejarah" : product.category
-                  }
+                  category={product.category}
                   originalPrice={product.price}
-                  image={product.image}
+                  size={product.size} // Kirim ukuran ke ProductCard
                   stock={product.stock}
+                  image={product.image}
                   discount={getDiscount(product.id)}
-                  onClick={(p) => setSelectedProduct(p)}
+                  onClick={() => setSelectedProduct({
+                    ...product,
+                    mode: 'customer' // Mode untuk modal
+                  })}
                 />
               </div>
             ))}
           </div>
         )}
       </main>
+      
+      {/* Modal untuk detail produk */}
       <ProductModal
         product={selectedProduct}
-        mode={selectedProduct?.mode}
+        mode="customer"
         onClose={() => setSelectedProduct(null)}
       />
     </div>

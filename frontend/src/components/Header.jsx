@@ -42,8 +42,7 @@ function Header({
   return (
     <header className="dashboard-header">
       <div className="logo">
-        <img src={logo} alt="Arbook Logo" className="logo-img" />
-        <span className="brand-name">Arbook</span>
+        <span className="brand-name">ArganFashion</span>
       </div>
 
       <div className="header-center">
